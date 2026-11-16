@@ -1,4 +1,5 @@
 import type { Clock } from "../run.ts";
+import { discordTables } from "./discord-tables.ts";
 import { guardText, type Http, MessengerError, withBackoff } from "./http.ts";
 
 const retryAfter = (body: string): number | undefined => {
@@ -54,14 +55,16 @@ export class Discord {
   async send(channelId: string, content: string): Promise<string> {
     return (
       await this.call<{ id: string }>("POST", `/channels/${channelId}/messages`, {
-        content: guardText(content),
+        content: guardText(discordTables(content)),
         allowed_mentions: { parse: [] },
       })
     ).id;
   }
 
   async edit(channelId: string, messageId: string, content: string): Promise<void> {
-    await this.call("PATCH", `/channels/${channelId}/messages/${messageId}`, { content: guardText(content) });
+    await this.call("PATCH", `/channels/${channelId}/messages/${messageId}`, {
+      content: guardText(discordTables(content)),
+    });
   }
 
   async typing(channelId: string): Promise<void> {
